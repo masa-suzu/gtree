@@ -30,8 +30,8 @@ func (t *Tree) Count() int {
 	return t.count
 }
 
-// Search returns a value with a given key.
-// If no value with the key is found, returns error.
+// Search returns a value associated with a given key.
+// If no value is found by the key, returns nil with an error.
 func (t *Tree) Search(key int) (interface{}, error) {
 	x := t.root
 
@@ -46,11 +46,11 @@ func (t *Tree) Search(key int) (interface{}, error) {
 			x = x.right
 		}
 	}
-	return nil, fmt.Errorf("not found a item with the given k. Key: %v", key)
+	return nil, fmt.Errorf("found no value by key '%v'", key)
 }
 
 // Insert a value with a given key.
-// If the key has already inserted, the new value overrides old one.
+// If the same key has already inserted, the new value overrides old one.
 func (t *Tree) Insert(key int, value interface{}) {
 	t.root = t.insert(t.root, key, value)
 
@@ -87,7 +87,7 @@ func (t *Tree) insert(n *node, key int, value interface{}) *node {
 }
 
 // Delete remove a node by a given key.
-// If no value with the key found, do nothing.
+// If the key does not found, do nothing.
 func (t *Tree) Delete(key int) {
 	t.root = t.delete(t.root, key)
 	if t.root == nil {
