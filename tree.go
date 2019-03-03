@@ -1,6 +1,6 @@
 /*
- Package llrb provides an implementation of Left-Leaning Red-Black Tree.
- Original implementation is available from http://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf.
+	Package llrb provides an implementation of Left-Leaning Red-Black Tree.
+	Original implementation is available from http://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf.
 */
 package llrb
 
@@ -14,11 +14,13 @@ const (
 	gt = 1
 )
 
+// Tree implements a LLRB tree.
 type Tree struct {
 	root  *node
 	count int
 }
 
+// New returns a reference to an empty Tree.
 func New() *Tree {
 	return &Tree{
 		root:  nil,
@@ -26,6 +28,7 @@ func New() *Tree {
 	}
 }
 
+// Count returns num of nodes.
 func (t *Tree) Count() int {
 	return t.count
 }
@@ -216,4 +219,32 @@ func compare(k1, k2 int) int {
 		return gt
 	}
 	return eq
+}
+
+// Walk iterates nodes in tree.
+// Values are ordered in ascending order of keys.
+func (t *Tree) Walk() <-chan interface{} {
+	ch := make(chan interface{})
+
+	go walk(t.root, ch)
+	return ch
+}
+func walk(n *node, ch chan interface{}) {
+	var walker func(*node)
+
+	walker = func(n *node) {
+		if n == nil {
+			return
+		}
+		if n.left != nil {
+			walker(n.left)
+		}
+		ch <- n.value
+
+		if n.right != nil {
+			walker(n.right)
+		}
+	}
+	defer close(ch)
+	walker(n)
 }

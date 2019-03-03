@@ -1,8 +1,9 @@
 package llrb_test
 
 import (
-	"github.com/masa-suzu/llrb"
 	"testing"
+
+	"github.com/masa-suzu/llrb"
 )
 
 type kv struct {
@@ -244,6 +245,82 @@ func TestDelete_withSameKeys(t *testing.T) {
 		})
 	}
 
+}
+
+func TestWalk(t *testing.T) {
+	tests := []struct {
+		name     string
+		inserted []kv
+		want     []interface{}
+	}{
+		{
+			name:     "empty",
+			inserted: []kv{},
+			want:     []interface{}{},
+		},
+
+		{
+			name: "ascending",
+			inserted: []kv{
+				{k: 1, v: 100},
+				{k: 2, v: 200},
+				{k: 3, v: 300},
+			},
+			want: []interface{}{
+				100, 200, 300,
+			},
+		},
+		{
+			name: "descending",
+			inserted: []kv{
+				{k: 5, v: 500},
+				{k: 4, v: 400},
+				{k: 3, v: 300},
+			},
+			want: []interface{}{
+				300, 400, 500,
+			},
+		},
+		{
+			name: "random-ordering",
+			inserted: []kv{
+				{k: 6, v: 600},
+				{k: 10, v: nil},
+				{k: 1, v: 100},
+				{k: 9, v: 900},
+				{k: 8, v: 800},
+				{k: 2, v: 200},
+			},
+			want: []interface{}{
+				100, 200, 600, 800, 900, nil,
+			},
+		},
+	}
+
+	t.Helper()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tree := llrb.New()
+			for _, kv := range tt.inserted {
+				tree.Insert(kv.k, kv.v)
+			}
+			got := []interface{}{}
+			for v := range tree.Walk() {
+				got = append(got, v)
+			}
+
+			if len(tt.want) != len(got) {
+				t.Errorf("num of nodes must be %v, got %v", len(tt.want), len(got))
+			}
+
+			for i, v := range tt.want {
+				if v != got[i] {
+					t.Errorf("want %v, got %v", v, got[i])
+				}
+			}
+		})
+	}
 }
 
 func assertTree(t *testing.T, tree *llrb.Tree, kvs []kv) {
