@@ -1,6 +1,7 @@
 package llrb_test
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/masa-suzu/llrb"
@@ -196,7 +197,6 @@ func TestDelete(t *testing.T) {
 			for _, kv := range tt.deleted {
 				tree.Delete(kv.k)
 			}
-
 			assertTree(t, tree, tt.want)
 		})
 	}
@@ -318,6 +318,100 @@ func TestWalk(t *testing.T) {
 				if v != got[i] {
 					t.Errorf("want %v, got %v", v, got[i])
 				}
+			}
+		})
+	}
+}
+
+func TestToHTML(t *testing.T) {
+	tests := []struct {
+		name     string
+		inserted []kv
+		want     string
+	}{
+		{
+			name:     "zero-node",
+			inserted: []kv{},
+			want: `<div class="tree">
+</div>
+`,
+		},
+		{
+			name: "two-nodes",
+			inserted: []kv{
+				{k: 2, v: 600},
+				{k: 1, v: 600},
+			},
+			want: `<div class="tree">
+  <ul>
+    <li>
+      <black href="#">2/600</black>
+      <ul>
+        <li>
+          <red href="#">1/600</red>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+`,
+		},
+		{
+			name: "six-nodes",
+			inserted: []kv{
+				{k: 10, v: 600},
+				{k: 20, v: 600},
+				{k: 30, v: 600},
+				{k: 40, v: 600},
+				{k: 50, v: 600},
+				{k: 25, v: 600},
+			},
+			want: `<div class="tree">
+  <ul>
+    <li>
+      <black href="#">40/600</black>
+      <ul>
+        <li>
+          <red href="#">20/600</red>
+          <ul>
+            <li>
+              <black href="#">10/600</black>
+            </li>
+            <li>
+              <black href="#">30/600</black>
+              <ul>
+                <li>
+                  <red href="#">25/600</red>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <black href="#">50/600</black>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+`,
+		},
+	}
+
+	t.Helper()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tree := llrb.New()
+			for _, kv := range tt.inserted {
+				tree.Insert(kv.k, kv.v)
+			}
+
+			w := &bytes.Buffer{}
+			tree.ToHTML(w)
+			got := w.String()
+			if tt.want != got {
+				t.Errorf("\nwant\n%v\ngot\n%v", tt.want, got)
 			}
 		})
 	}

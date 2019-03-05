@@ -6,6 +6,7 @@ package llrb
 
 import (
 	"fmt"
+	"io"
 )
 
 const (
@@ -146,6 +147,14 @@ func deleteMin(n *node) *node {
 	}
 	n.left = deleteMin(n.left)
 	return fixup(n)
+}
+
+func (t *Tree) ToHTML(w io.Writer) {
+	w.Write([]byte("<div class=\"tree\">\n"))
+	if t.root != nil {
+		t.root.ToHTML(w)
+	}
+	w.Write([]byte("</div>\n"))
 }
 
 func fixup(n *node) *node {
