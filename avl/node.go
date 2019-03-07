@@ -1,8 +1,9 @@
 package avl
 
 type node struct {
-	key   int
-	value interface{}
-	left  *node
-	right *node
+	height int
+	key    int
+	value  interface{}
+	left   *node
+	right  *node
 }
