@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/masa-suzu/llrb"
+	"github.com/masa-suzu/gtree/llrb"
 )
 
 type kv struct {

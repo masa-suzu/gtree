@@ -1,1 +1,1 @@
-module github.com/masa-suzu/llrb
+module github.com/masa-suzu/gtree
