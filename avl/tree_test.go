@@ -65,6 +65,77 @@ func TestInsert(t *testing.T) {
 	}
 }
 
+func TestDelete(t *testing.T) {
+	tests := []struct {
+		name    string
+		deleted []kv
+		want    []kv
+	}{
+		{
+			name: "ascending",
+			deleted: []kv{
+				{k: 1, v: 200},
+				{k: 2, v: 2400},
+				{k: 3, v: 2040},
+			},
+			want: []kv{
+				{k: 4, v: 100},
+				{k: 5, v: 100},
+			},
+		},
+		{
+			name: "descending",
+			deleted: []kv{
+				{k: 5, v: 200},
+				{k: 4, v: 2400},
+				{k: 3, v: 2040},
+			},
+			want: []kv{
+				{k: 2, v: 100},
+				{k: 1, v: 100},
+			},
+		},
+		{
+			name: "random-ordering",
+			deleted: []kv{
+				{k: 6, v: 200},
+				{k: 10, v: 2400},
+				{k: 1, v: 2040},
+				{k: 9, v: 2040},
+				{k: 8, v: 2040},
+				{k: 2, v: 2040},
+			},
+			want: []kv{
+				{k: 4, v: 100},
+				{k: 11, v: 100},
+			},
+		},
+	}
+
+	t.Helper()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tree := avl.New()
+
+			// insert all key-value pairs
+			for _, kv := range tt.deleted {
+				tree.Insert(kv.k, kv.v)
+			}
+
+			for _, kv := range tt.want {
+				tree.Insert(kv.k, kv.v)
+			}
+
+			// delete nodes of tt.delete
+			for _, kv := range tt.deleted {
+				tree.Delete(kv.k)
+			}
+			assertTree(t, tree, tt.want)
+		})
+	}
+}
+
 func assertTree(t *testing.T, tree *avl.Tree, kvs []kv) {
 	if len(kvs) != tree.Count() {
 		t.Errorf("num of nodes must be %v, got %v", len(kvs), tree.Count())

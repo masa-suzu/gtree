@@ -14,11 +14,17 @@ const (
 	gt = 1
 )
 
+type kvp struct {
+	key   int
+	value interface{}
+}
+
 // Tree implements an AVL tree.
 type Tree struct {
 	root       *node
 	count      int
 	needUpdate bool
+	max        *kvp
 }
 
 // New returns a reference to an empty Tree.
@@ -78,7 +84,7 @@ func (t *Tree) balanceLeft(n *node) *node {
 		if bias(n.left) >= 0 {
 			n = rotateRight(n)
 		} else {
-			n = rotateLeft(n)
+			n = rotateLeftRight(n)
 		}
 	} else {
 		modifyHeight(n)
@@ -97,13 +103,22 @@ func (t *Tree) balanceRight(n *node) *node {
 		if bias(n.right) <= 0 {
 			n = rotateLeft(n)
 		} else {
-			n = rotateRight(n)
+			n = rotateRightLeft(n)
 		}
 	} else {
 		modifyHeight(n)
 	}
 	t.needUpdate = h != height(n)
 	return n
+}
+
+func rotateLeftRight(n *node) *node {
+	n.left = rotateLeft(n.left)
+	return rotateRight(n)
+}
+func rotateRightLeft(n *node) *node {
+	n.right = rotateLeft(n.right)
+	return rotateLeft(n)
 }
 
 func height(n *node) int {
@@ -161,6 +176,55 @@ func (t *Tree) Search(key int) (interface{}, error) {
 	return nil, fmt.Errorf("found no value by key '%v'", key)
 }
 
+// Delete remove a node by a given key.
+// If the key does not found, do nothing.
+func (t *Tree) Delete(key int) {
+	t.root = t.delete(t.root, key)
+}
+
+func (t *Tree) delete(n *node, key int) *node {
+	if n == nil {
+		t.needUpdate = false
+		return nil
+	}
+
+	cmp := compare(key, n.key)
+	switch cmp {
+	case lt:
+		n.left = t.delete(n.left, key)
+		return t.balanceRight(n)
+	case gt:
+		n.right = t.delete(n.right, key)
+		return t.balanceLeft(n)
+	case eq:
+		t.count--
+		if n.left == nil {
+			t.needUpdate = true
+			return n.right
+		} else {
+			n.left = t.deleteMax(n.left)
+			n.key = t.max.key
+			n.value = t.max.value
+			return t.balanceRight(n)
+		}
+	}
+	panic("unknown switch case")
+
+}
+
+func (t *Tree) deleteMax(n *node) *node {
+	if n.right != nil {
+		n.right = t.deleteMax(n.right)
+		return t.balanceLeft(n)
+	}
+
+	t.needUpdate = true
+	t.max = &kvp{
+		key:   n.key,
+		value: n.value,
+	}
+	return n.left
+}
 func compare(k1, k2 int) int {
 	if k1 < k2 {
 		return lt
